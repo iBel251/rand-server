@@ -1,11 +1,7 @@
-const { db } = require("./firebase");
 const { Telegraf } = require("telegraf");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const supabase = require("./config/supabaseClient");
-const { Client } = require("pg");
-const startDbListener = require("./dbListener");
 
 const app = express();
 const port = process.env.PORT || 3000; // Use the port that suits your deployment environment
@@ -15,7 +11,6 @@ const {
   checkChatEligibility,
   handleText,
   endChat,
-  showOptionsKeyboard,
   // subscribeToMessages,
 } = require("./userFunctions");
 
