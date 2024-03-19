@@ -96,6 +96,24 @@ app.post("/follow-up", async (req, res) => {
   }
 });
 
+bot.on("message", (ctx) => {
+  // Assuming the data sent from the Web App is in the format: {"action": "start_chat"}
+  const data = JSON.parse(ctx.message.text);
+  if (data.action === "registration_successful") {
+    const keyboard = {
+      reply_markup: {
+        keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
+        resize_keyboard: true,
+        one_time_keyboard: false,
+      },
+    };
+    ctx.reply(
+      "Registration successful. Click on start to find a match.",
+      keyboard
+    );
+  }
+});
+
 // Start Express server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
