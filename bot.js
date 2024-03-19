@@ -53,7 +53,7 @@ bot.on("text", async (ctx) => {
     await checkChatEligibility(ctx);
     // ctx.reply("checking ability to chat");
   } else if (text === "Edit profile") {
-    const webAppUrl = `https://randtalk-dof1.onrender.com/useredit/${chatId}`;
+    const webAppUrl = `https://randtalk-dof1.onrender.com/edituser/${chatId}`;
     const keyboard = {
       reply_markup: JSON.stringify({
         inline_keyboard: [
