@@ -53,7 +53,15 @@ bot.on("text", async (ctx) => {
     await checkChatEligibility(ctx);
     // ctx.reply("checking ability to chat");
   } else if (text === "Edit profile") {
-    ctx.reply("opening edit webapp");
+    const webAppUrl = `https://randtalk-dof1.onrender.com/useredit/${chatId}`;
+    const keyboard = {
+      reply_markup: JSON.stringify({
+        inline_keyboard: [
+          [{ text: "Edit Profile", web_app: { url: webAppUrl } }],
+        ],
+      }),
+    };
+    ctx.reply("Procceed to edit your profile:", keyboard);
   } else if (text === "Edit preferences") {
     ctx.reply("opening preferences webapp");
   } else if (text === "End chat") {
@@ -78,17 +86,23 @@ bot.on("message", async (ctx) => {
       console.log("Received JSON data from web app:", data);
 
       // Respond to the user based on the received data
+      const registrationKeyboard = {
+        reply_markup: {
+          keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
+          resize_keyboard: true,
+          one_time_keyboard: false,
+        },
+      };
       switch (data.action) {
         case "registration_successful":
-          const registrationKeyboard = {
-            reply_markup: {
-              keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
-              resize_keyboard: true,
-              one_time_keyboard: false,
-            },
-          };
           await ctx.reply(
             "Registration successful. Click on start to find a match.",
+            registrationKeyboard
+          );
+          break;
+        case "profile_edit_successful":
+          await ctx.reply(
+            "Profile updated seccesfully. You can continue to find a match.",
             registrationKeyboard
           );
           break;
