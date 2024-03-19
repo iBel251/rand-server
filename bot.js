@@ -65,6 +65,56 @@ bot.on("text", async (ctx) => {
   }
 });
 
+bot.on("message", async (ctx) => {
+  // Check if the message includes web_app_data
+  if (ctx.message?.web_app_data) {
+    // Extract the data sent from the web app
+    const dataString = ctx.message.web_app_data.data;
+
+    // Attempt to parse the dataString as JSON
+    try {
+      const data = JSON.parse(dataString);
+      // Log the parsed JSON data for debugging
+      console.log("Received JSON data from web app:", data);
+
+      // Respond to the user based on the received data
+      switch (data.action) {
+        case "registration_successful":
+          const registrationKeyboard = {
+            reply_markup: {
+              keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
+              resize_keyboard: true,
+              one_time_keyboard: false,
+            },
+          };
+          await ctx.reply(
+            "Registration successful. Click on start to find a match.",
+            registrationKeyboard
+          );
+          break;
+
+        // Add cases for other actions here
+
+        default:
+          console.log("Unknown action received from web app");
+          await ctx.reply("Received an unknown command from the web app.");
+      }
+    } catch (error) {
+      // If parsing fails, log the error and treat it as plaintext
+      console.error("Error parsing data from web app:", error);
+      // Optionally, respond back acknowledging the plaintext data
+      await ctx.reply(
+        "Received your message, but I couldn't understand it. Please try again."
+      );
+    }
+  } else {
+    // Handle other messages that don't include web_app_data
+    console.log("Received a regular message: ", ctx.message.text);
+    // Optionally, provide a default response or guidance
+    await ctx.reply("How can I assist you today?");
+  }
+});
+
 bot.on("error", (error) => {
   console.error(error);
 });
@@ -93,24 +143,6 @@ app.post("/follow-up", async (req, res) => {
     res
       .status(500)
       .send({ success: false, message: "Error sending follow-up message." });
-  }
-});
-
-bot.on("message", (ctx) => {
-  // Assuming the data sent from the Web App is in the format: {"action": "start_chat"}
-  const data = JSON.parse(ctx.message.text);
-  if (data.action === "registration_successful") {
-    const keyboard = {
-      reply_markup: {
-        keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
-        resize_keyboard: true,
-        one_time_keyboard: false,
-      },
-    };
-    ctx.reply(
-      "Registration successful. Click on start to find a match.",
-      keyboard
-    );
   }
 });
 

@@ -278,7 +278,7 @@ function sendRegisterButton(ctx, message) {
 
   // Inline keyboard markup
   const inlineKeyboardMarkup = {
-    inline_keyboard: [
+    keyboard: [
       [
         {
           text: "Register", // Button text
@@ -299,14 +299,14 @@ function sendRegisterButton(ctx, message) {
     .catch((error) => {
       console.error("Failed to send message with web app button:", error);
     });
-  const keyboard = {
-    reply_markup: {
-      keyboard: [["/start"]],
-      resize_keyboard: true,
-      one_time_keyboard: false,
-    },
-  };
-  return ctx.reply("RandTalkET", keyboard);
+  // const keyboard = {
+  //   reply_markup: {
+  //     keyboard: [["/start"]],
+  //     resize_keyboard: true,
+  //     one_time_keyboard: false,
+  //   },
+  // };
+  // return ctx.reply("RandTalkET", keyboard);
 }
 
 function onChatKeyboard(ctx, { msgCase }) {
