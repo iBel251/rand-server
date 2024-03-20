@@ -8,7 +8,7 @@ function startKeyboard(ctx) {
       keyboard: [
         [
           "Start chat",
-          { text: "Edit profile", web_app: { url: userEditUrl } },
+          { text: "My profile", web_app: { url: userEditUrl } },
           { text: "Edit preferences", web_app: { url: preferenceEditUrl } },
         ],
       ],
