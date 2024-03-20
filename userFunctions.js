@@ -75,12 +75,10 @@ async function checkChatEligibility(ctx) {
     .eq("id", chatId)
     .single();
 
-  if (error) {
-    console.log("error fetching user by id", error);
+  if (error || !data) {
+    console.log("Error fetching user by id or no user found", error);
   }
-  if (!data) {
-    console.log("no user found");
-  }
+
   if (data) {
     const preferedGender = data.preferences.gender || null;
     if (data.is_registered === false) {
@@ -89,7 +87,8 @@ async function checkChatEligibility(ctx) {
       console.log("user not fully registered, please finish registration");
       sendRegisterButton(ctx, message);
     } else if (data.status === "on chat") {
-      onChatKeyboard(ctx);
+      return true;
+      // onChatKeyboard(ctx);
     } else if (data.status === "waiting") {
       waitingKeyboard(ctx);
     } else if (data.is_registered === true && data.status === "none") {
@@ -97,6 +96,7 @@ async function checkChatEligibility(ctx) {
       startChat(ctx, preferedGender, data.gender);
     } else {
       console.log("sorry didnt catch this one.");
+      return false;
     }
   }
 }
@@ -299,14 +299,6 @@ function sendRegisterButton(ctx, message) {
     .catch((error) => {
       console.error("Failed to send message with web app button:", error);
     });
-  // const keyboard = {
-  //   reply_markup: {
-  //     keyboard: [["/start"]],
-  //     resize_keyboard: true,
-  //     one_time_keyboard: false,
-  //   },
-  // };
-  // return ctx.reply("RandTalkET", keyboard);
 }
 
 function onChatKeyboard(ctx, { msgCase }) {
@@ -332,9 +324,18 @@ function onChatKeyboard(ctx, { msgCase }) {
 }
 
 function showOptionsKeyboard(ctx) {
+  const chatId = ctx.message.chat.id.toString();
+  const userEditUrl = `https://randtalk-dof1.onrender.com/edituser/${chatId}`;
+  const preferenceEditUrl = `https://randtalk-dof1.onrender.com/editpreference/${chatId}`;
   const keyboard = {
     reply_markup: {
-      keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
+      keyboard: [
+        [
+          "Start chat",
+          { text: "Edit profile", web_app: { url: userEditUrl } },
+          { text: "Edit preferences", web_app: { url: preferenceEditUrl } },
+        ],
+      ],
       resize_keyboard: true,
       one_time_keyboard: false,
     },

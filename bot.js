@@ -2,6 +2,7 @@ const { Telegraf } = require("telegraf");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { startKeyboard } = require("./keyboards");
 
 const app = express();
 const port = process.env.PORT || 3000; // Use the port that suits your deployment environment
@@ -14,7 +15,9 @@ const {
   // subscribeToMessages,
 } = require("./userFunctions");
 
-const token = "6389919920:AAGtICZ4LdgQjG31BHGz2fL-fbCEDtoulf8";
+const tokenFirsthalf = process.env.REACT_APP_BOT_TOKEN_FIRSTHALF;
+const tokenSecondhalf = process.env.REACT_APP_BOT_TOKEN_SECONDHALF;
+const token = tokenFirsthalf + ":" + tokenSecondhalf;
 
 const bot = new Telegraf(token);
 
@@ -44,31 +47,21 @@ bot.start(async (ctx) => {
 bot.on("text", async (ctx) => {
   const chatId = ctx.message.chat.id.toString();
   const text = ctx.message.text;
-  // const userRef = doc(db, "users", chatId);
-  // const docSnap = await getDoc(userRef);
+  let shouldHandleText = false;
 
   if (text === "/start") {
     ctx.reply("Starting");
   } else if (text === "Start chat") {
-    await checkChatEligibility(ctx);
-    // ctx.reply("checking ability to chat");
-  } else if (text === "Edit profile") {
-    const webAppUrl = `https://randtalk-dof1.onrender.com/edituser/${chatId}`;
-    const keyboard = {
-      reply_markup: JSON.stringify({
-        inline_keyboard: [
-          [{ text: "Edit Profile", web_app: { url: webAppUrl } }],
-        ],
-      }),
-    };
-    ctx.reply("Procceed to edit your profile:", keyboard);
-  } else if (text === "Edit preferences") {
-    ctx.reply("opening preferences webapp");
+    shouldHandleText = await checkChatEligibility(ctx);
   } else if (text === "End chat") {
     await endChat(ctx);
   } else if (text === "Cancel") {
     await endChat(ctx);
   } else {
+    shouldHandleText = true;
+  }
+
+  if (shouldHandleText) {
     await handleText(text, ctx);
   }
 });
@@ -86,24 +79,24 @@ bot.on("message", async (ctx) => {
       console.log("Received JSON data from web app:", data);
 
       // Respond to the user based on the received data
-      const registrationKeyboard = {
-        reply_markup: {
-          keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
-          resize_keyboard: true,
-          one_time_keyboard: false,
-        },
-      };
+      const keyboard = startKeyboard(ctx);
       switch (data.action) {
         case "registration_successful":
           await ctx.reply(
             "Registration successful. Click on start to find a match.",
-            registrationKeyboard
+            keyboard
           );
           break;
         case "profile_edit_successful":
           await ctx.reply(
             "Profile updated seccesfully. You can continue to find a match.",
-            registrationKeyboard
+            keyboard
+          );
+          break;
+        case "preference_edit_successful":
+          await ctx.reply(
+            "Preference updated seccesfully. You can continue to find a match.",
+            keyboard
           );
           break;
 
@@ -133,37 +126,31 @@ bot.on("error", (error) => {
   console.error(error);
 });
 
-// Express route for follow-up actions
-app.post("/follow-up", async (req, res) => {
-  const { chatId, message } = req.body;
-  console.log("there is follow up", message);
-  if (message && chatId) {
-    const keyboard = {
-      reply_markup: {
-        keyboard: [["Start chat", "Edit profile", "Edit preferences"]],
-        resize_keyboard: true,
-        one_time_keyboard: false,
-      },
-    };
-    bot.telegram.sendMessage(chatId, ".", keyboard);
-  }
-  try {
-    await bot.telegram.sendMessage(chatId, message);
-    res
-      .status(200)
-      .send({ success: true, message: "Follow-up message sent successfully." });
-  } catch (error) {
-    console.error("Error sending follow-up message:", error);
-    res
-      .status(500)
-      .send({ success: false, message: "Error sending follow-up message." });
-  }
-});
+// // Express route for follow-up actions
+// app.post("/follow-up", async (req, res) => {
+//   const { chatId, message } = req.body;
+//   console.log("there is follow up", message);
+//   if (message && chatId) {
+//     const keyboard = startKeyboard();
+//     bot.telegram.sendMessage(chatId, ".", keyboard);
+//   }
+//   try {
+//     await bot.telegram.sendMessage(chatId, message);
+//     res
+//       .status(200)
+//       .send({ success: true, message: "Follow-up message sent successfully." });
+//   } catch (error) {
+//     console.error("Error sending follow-up message:", error);
+//     res
+//       .status(500)
+//       .send({ success: false, message: "Error sending follow-up message." });
+//   }
+// });
 
-// Start Express server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// // Start Express server
+// app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });
 
 // Make sure to gracefully handle shutdown
 process.once("SIGINT", () => bot.stop("SIGINT"));
